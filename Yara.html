@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yara - Fast, Flexible, Everyday Payments</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(180deg, #ffe9c2 0%, #fef2e4 50%, #fffbf7 100%);
+            color: hsl(30, 22%, 29%);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        .cloud {
+            position: fixed;
+            background: rgba(255, 255, 255);
+            border-radius: 100px;
+            z-index: 0;
+            filter: blur(4px);
+            box-shadow: 0 8px 32px rgba(255, 255, 255, 0.4);
+        }
+
+        .cloud::before,
+        .cloud::after {
+            content: '';
+            position: absolute;
+            background: rgba(255, 255, 255);
+            border-radius: 100px;
+        }
+
+        .cloud-1 {
+            width: 180px;
+            height: 60px;
+            top: 8%;
+            left: -180px;
+            animation: float-1 50s linear infinite;
+        }
+
+        .cloud-1::before {
+            width: 80px;
+            height: 80px;
+            top: -40px;
+            left: 30px;
+        }
+
+        .cloud-1::after {
+            width: 90px;
+            height: 60px;
+            top: -35px;
+            right: 30px;
+        }
+
+        .cloud-2 {
+            width: 220px;
+            height: 70px;
+            top: 20%;
+            left: -220px;
+            animation: float-2 65s linear infinite;
+            animation-delay: 8s;
+        }
+
+        .cloud-2::before {
+            width: 100px;
+            height: 100px;
+            top: -50px;
+            left: 40px;
+        }
+
+        .cloud-2::after {
+            width: 110px;
+            height: 70px;
+            top: -45px;
+            right: 40px;
+        }
+
+        .cloud-3 {
+            width: 150px;
+            height: 55px;
+            top: 35%;
+            left: -150px;
+            animation: float-3 55s linear infinite;
+            animation-delay: 20s;
+        }
+
+        .cloud-3::before {
+            width: 70px;
+            height: 70px;
+            top: -35px;
+            left: 25px;
+        }
+
+        .cloud-3::after {
+            width: 75px;
+            height: 55px;
+            top: -30px;
+            right: 25px;
+        }
+
+        .cloud-4 {
+            width: 200px;
+            height: 65px;
+            top: 55%;
+            left: -200px;
+            animation: float-4 70s linear infinite;
+            animation-delay: 15s;
+        }
+
+        .cloud-4::before {
+            width: 85px;
+            height: 85px;
+            top: -42px;
+            left: 35px;
+        }
+
+        .cloud-4::after {
+            width: 95px;
+            height: 65px;
+            top: -38px;
+            right: 35px;
+        }
+
+        .cloud-5 {
+            width: 160px;
+            height: 58px;
+            top: 72%;
+            left: -160px;
+            animation: float-5 52s linear infinite;
+            animation-delay: 30s;
+        }
+
+        .cloud-5::before {
+            width: 72px;
+            height: 72px;
+            top: -36px;
+            left: 28px;
+        }
+
+        .cloud-5::after {
+            width: 80px;
+            height: 58px;
+            top: -32px;
+            right: 28px;
+        }
+
+        .cloud-6 {
+            width: 140px;
+            height: 50px;
+            top: 88%;
+            left: -140px;
+            animation: float-6 48s linear infinite;
+            animation-delay: 10s;
+        }
+
+        .cloud-6::before {
+            width: 65px;
+            height: 65px;
+            top: -32px;
+            left: 22px;
+        }
+
+        .cloud-6::after {
+            width: 70px;
+            height: 50px;
+            top: -28px;
+            right: 22px;
+        }
+
+        @keyframes float-1 {
+            0% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(calc(50vw + 90px)) translateY(-10px); }
+            100% { transform: translateX(calc(100vw + 180px)) translateY(0); }
+        }
+
+        @keyframes float-2 {
+            0% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(calc(50vw + 110px)) translateY(15px); }
+            100% { transform: translateX(calc(100vw + 220px)) translateY(0); }
+        }
+
+        @keyframes float-3 {
+            0% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(calc(50vw + 75px)) translateY(-8px); }
+            100% { transform: translateX(calc(100vw + 150px)) translateY(0); }
+        }
+
+        @keyframes float-4 {
+            0% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(calc(50vw + 100px)) translateY(12px); }
+            100% { transform: translateX(calc(100vw + 200px)) translateY(0); }
+        }
+
+        @keyframes float-5 {
+            0% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(calc(50vw + 80px)) translateY(-12px); }
+            100% { transform: translateX(calc(100vw + 160px)) translateY(0); }
+        }
+
+        @keyframes float-6 {
+            0% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(calc(50vw + 70px)) translateY(8px); }
+            100% { transform: translateX(calc(100vw + 140px)) translateY(0); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            padding: 20px 0;
+            position: relative;
+            z-index: 10;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: #C4A574;
+            letter-spacing: 1px;
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .nav-links a {
+            margin-left: 30px;
+            text-decoration: none;
+            color: #8A7355;
+            font-weight: 500;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #C4A574;
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-links a:hover {
+            color: #C4A574;
+        }
+
+        .hero {
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .floating-money {
+            position: absolute;
+            font-size: 3rem;
+            opacity: 0.15;
+            animation: floatMoney 8s ease-in-out infinite;
+        }
+
+        .money-1 { top: 15%; left: 10%; animation-delay: 0s; }
+        .money-2 { top: 65%; right: 15%; animation-delay: 2s; }
+        .money-3 { top: 40%; left: 75%; animation-delay: 4s; }
+
+        @keyframes floatMoney {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 1s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            color: #6A5745;
+            margin-bottom: 20px;
+            line-height: 1.1;
+        }
+
+        .hero h1 .highlight {
+            color: #C4A574;
+            position: relative;
+            display: inline-block;
+        }
+
+        .hero h1 .highlight::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 12px;
+            background: linear-gradient(90deg, rgba(196, 165, 116, 0.3), rgba(196, 165, 116, 0.1));
+            z-index: -1;
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            color: #8A7355;
+            margin-bottom: 40px;
+            max-width: 600px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 18px 45px;
+            background: linear-gradient(135deg, #D4B896 0%, #C4A574 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.4s ease;
+            box-shadow: 0 8px 25px rgba(196, 165, 116, 0.35);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .cta-button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 35px rgba(196, 165, 116, 0.45);
+        }
+
+        section {
+            padding: 100px 0;
+            position: relative;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #6A5745;
+            margin-bottom: 60px;
+            position: relative;
+            display: inline-block;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .section-title::before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, #D4B896, #C4A574);
+            border-radius: 2px;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.3rem;
+            color: #8A7355;
+            margin-bottom: 60px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .what-is-yara {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 30px;
+            padding: 60px;
+            max-width: 900px;
+            margin: 0 auto;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 60px rgba(196, 165, 116, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .what-is-yara::before {
+            content: '💸';
+            position: absolute;
+            font-size: 8rem;
+            opacity: 0.05;
+            top: -20px;
+            right: -20px;
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .what-is-yara h2 {
+            font-size: 2.5rem;
+            color: #6A5745;
+            margin-bottom: 30px;
+        }
+
+        .what-is-yara p {
+            font-size: 1.2rem;
+            color: #7A6856;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .feature-pills {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .pill {
+            padding: 10px 25px;
+            background: linear-gradient(135deg, #E8D9BF, #D4B896);
+            color: #6A5745;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 15px rgba(196, 165, 116, 0.2);
+            transition: all 0.3s;
+            cursor: default;
+        }
+
+        .pill:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(196, 165, 116, 0.3);
+        }
+
+        .timeline {
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, transparent, #D4B896, transparent);
+            transform: translateX(-50%);
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 80px;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.6s;
+        }
+
+        .timeline-item.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .timeline-item:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .timeline-icon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #FFF8F0 0%, #F5EBD9 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin: 0 40px;
+            box-shadow: 0 10px 30px rgba(196, 165, 116, 0.2);
+            animation: iconFloat 3s ease-in-out infinite;
+            position: relative;
+            z-index: 2;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .timeline-content {
+            flex: 1;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+        }
+
+        .timeline-content:hover {
+            transform: scale(1.02);
+            box-shadow: 0 15px 50px rgba(196, 165, 116, 0.2);
+        }
+
+        .timeline-time {
+            font-size: 0.9rem;
+            color: #C4A574;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .timeline-content h3 {
+            font-size: 1.8rem;
+            color: #6A5745;
+            margin-bottom: 15px;
+        }
+
+        .timeline-content p {
+            font-size: 1.1rem;
+            color: #7A6856;
+            line-height: 1.7;
+        }
+
+        .use-cases {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .use-case-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s;
+            opacity: 0;
+            transform: translateY(30px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .use-case-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #D4B896, #C4A574);
+            transform: scaleX(0);
+            transition: transform 0.4s;
+        }
+
+        .use-case-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .use-case-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .use-case-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 50px rgba(196, 165, 116, 0.2);
+        }
+
+        .use-case-icon {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            display: inline-block;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .use-case-card:hover .use-case-icon {
+            animation: spin 0.6s ease-in-out;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        .use-case-card h3 {
+            font-size: 1.6rem;
+            color: #6A5745;
+            margin-bottom: 15px;
+        }
+
+        .use-case-card p {
+            font-size: 1.05rem;
+            color: #7A6856;
+            line-height: 1.6;
+        }
+
+        .comparison {
+            background: linear-gradient(135deg, rgba(212, 184, 150, 0.15) 0%, rgba(255, 248, 240, 0.5) 100%);
+            border-radius: 30px;
+            padding: 60px;
+            margin-top: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .comparison::before {
+            content: '⚡';
+            position: absolute;
+            font-size: 15rem;
+            opacity: 0.03;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .comparison-item {
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.5s;
+            position: relative;
+        }
+
+        .comparison-item.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .comparison-value {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #C4A574 0%, #D4B896 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .comparison-label {
+            font-size: 1.2rem;
+            color: #6A5745;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .comparison-desc {
+            font-size: 1rem;
+            color: #8A7355;
+        }
+
+        .speed-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            max-width: 800px;
+            margin: 50px auto 0;
+        }
+
+        .speed-bar {
+            opacity: 0;
+            transform: translateX(-50px);
+            transition: all 0.6s;
+        }
+
+        .speed-bar.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .speed-label {
+            font-size: 1.1rem;
+            color: #6A5745;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .bar-container {
+            height: 50px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 25px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #D4B896, #C4A574);
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            color: white;
+            font-weight: 600;
+            transition: width 1.5s ease-out;
+            width: 0;
+        }
+
+        .speed-bar.visible .bar-fill {
+            width: var(--bar-width);
+        }
+
+        .how-it-works {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 50px;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+
+        .step {
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+            opacity: 0;
+            transform: translateX(-30px);
+            transition: all 0.6s;
+            position: relative;
+        }
+
+        .step.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .step-number {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #D4B896 0%, #C4A574 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 20px rgba(196, 165, 116, 0.3);
+            transition: all 0.3s;
+        }
+
+        .step:hover .step-number {
+            transform: scale(1.1) rotate(360deg);
+        }
+
+        .step h3 {
+            font-size: 1.4rem;
+            color: #6A5745;
+            margin-bottom: 15px;
+        }
+
+        .step p {
+            font-size: 1rem;
+            color: #7A6856;
+            line-height: 1.6;
+        }
+
+        .step-connector {
+            flex: 0.5;
+            height: 2px;
+            background: linear-gradient(90deg, #D4B896, transparent);
+            margin: 0 -25px;
+            position: relative;
+        }
+
+        .step-connector::after {
+            content: '→';
+            position: absolute;
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #C4A574;
+            font-size: 1.5rem;
+        }
+
+        .final-cta {
+            text-align: center;
+            background: linear-gradient(135deg, #D4B896 0%, #C4A574 100%);
+            padding: 80px 40px;
+            border-radius: 30px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .final-cta::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .final-cta h2 {
+            font-size: 2.8rem;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .final-cta p {
+            font-size: 1.3rem;
+            margin-bottom: 40px;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+        }
+
+        .final-cta .cta-button {
+            background: white;
+            color: #C4A574;
+            position: relative;
+            z-index: 1;
+        }
+
+        .final-cta .cta-button:hover {
+            background: #FFFCF7;
+        }
+
+        footer {
+            padding: 40px 0;
+            text-align: center;
+            color: #8A7355;
+            font-size: 0.95rem;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 50px;
+            border: 2px solid #C4A574;
+            border-radius: 20px;
+            opacity: 0.6;
+        }
+
+        .scroll-indicator::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 10px;
+            background: #C4A574;
+            border-radius: 3px;
+            animation: scrollDown 2s ease-in-out infinite;
+        }
+
+        @keyframes scrollDown {
+            0% { top: 10px; opacity: 1; }
+            100% { top: 30px; opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.2rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .timeline-item {
+                flex-direction: column !important;
+            }
+
+            .timeline-icon {
+                margin: 20px 0;
+            }
+
+            .timeline::before {
+                left: 60px;
+            }
+
+            .what-is-yara {
+                padding: 40px 30px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .comparison {
+                padding: 40px 20px;
+            }
+
+            .step-connector {
+                display: none;
+            }
+
+            .floating-money {
+                display: none;
+            }
+        }
+        #snowCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Prevents the snow from blocking mouse clicks */
+            z-index: -1;           /* Places snow behind your content */
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            gap: 10px; /* space between logo and text */
+            transition: transform 0.3s;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .logo-img {
+            height: 40px;
+            width: auto;
+            border-radius: 10px; /* rounded corners */
+            opacity: 0.7;         /* slightly transparent */
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); /* soft glow/fade effect */
+            object-fit: contain;  /* keep logo proportions */
+        }
+
+
+        .logo span {
+            font-size: 28px;
+            font-weight: 700;
+            color: #C4A574;
+        }
+
+
+
+    </style>
+</head>
+<body>
+    <div class="cloud cloud-1"></div>
+    <div class="cloud cloud-2"></div>
+    <div class="cloud cloud-3"></div>
+    <canvas id="snowCanvas"></canvas>
+    <div class="cloud cloud-4"></div>
+    <div class="cloud cloud-5"></div>
+    <div class="cloud cloud-6"></div>
+
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">
+                    <img src="https://res.cloudinary.com/dgvnuwspr/image/upload/v1764750690/earn-sponsor/klroj39g1jnwbqfxhlai.webp" alt="Yara Logo" class="logo-img">
+                    <span>Yara</span>
+                </div>
+                
+                <div class="nav-links">
+                    <a href="#what">What is Yara</a>
+                    <a href="#how">How it Works</a>
+                    <a href="#uses">Use Cases</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <div class="floating-money money-1">💸</div>
+            <div class="floating-money money-2">⚡</div>
+            <div class="floating-money money-3">✨</div>
+            <div class="hero-content">
+                <h1>Money moves<br>at the <span class="highlight">speed</span><br>of life</h1>
+                <p>Send, spend, and receive instantly. No delays. No hassle. Just you and your money, working together seamlessly.</p>
+                <a href="#what" class="cta-button">See How It Works</a>
+            </div>
+        </div>
+        <div class="scroll-indicator"></div>
+    </section>
+
+    <section id="what">
+        <div class="container">
+            <div class="what-is-yara">
+                <h2>What is Yara?</h2>
+                <p>Yara is your everyday payment app that makes money move as fast as your thoughts. Think of it as cash in your pocket, but smarter and instantly available anywhere you go.</p>
+                <p>Buy airtime while rushing to work, pay the market vendor without fumbling for change, top up your Chowdeck account for lunch, or send money home in seconds. Yara removes the friction from your daily transactions.</p>
+                <p>No complicated crypto jargon. No confusing interfaces. No waiting for confirmations. Just simple, transparent payments that happen the moment you need them to happen.</p>
+                <div class="feature-pills">
+                    <div class="pill">⚡ Instant</div>
+                    <div class="pill">🔍 Transparent</div>
+                    <div class="pill">🔒 Secure</div>
+                    <div class="pill">📱 Simple</div>
+                    <div class="pill">🌍 Everywhere</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <h2 class="section-title">A Day Powered by Yara</h2>
+            <p class="section-subtitle">From sunrise to sunset, watch how Yara transforms ordinary moments into effortless transactions</p>
+            
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-icon">☀️</div>
+                    <div class="timeline-content">
+                        <div class="timeline-time">7:30 AM – Morning Rush</div>
+                        <h3>Instant Connection</h3>
+                        <p>Your alarm goes off and you realize your data ran out overnight. Before you even get out of bed, open Yara, buy 2GB with two taps, and you're scrolling through news while still under the covers. The whole thing took 5 seconds.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-icon">🍲</div>
+                    <div class="timeline-content">
+                        <div class="timeline-time">1:00 PM – Lunch Break</div>
+                        <h3>Food at Your Fingertips</h3>
+                        <p>Working through lunch but hungry? Open Yara, instantly load your Chowdeck wallet, and order jollof rice with grilled chicken. By the time you finish your current task, your food is already being prepared. No waiting for bank transfers that take "2-5 minutes" which somehow always means 15.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-icon">🛒</div>
+                    <div class="timeline-content">
+                        <div class="timeline-time">4:30 PM – Market Stop</div>
+                        <h3>Cashless Shopping</h3>
+                        <p>Stop by the market on your way home. The tomato seller, the pepper vendor, even the woman selling fish all accept Yara now. Scan their code, pay instantly, keep moving. No digging for exact change. No awkward "I'll bring the balance tomorrow." Just clean, simple transactions.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-icon">👨‍👩‍👧</div>
+                    <div class="timeline-content">
+                        <div class="timeline-time">7:00 PM – Evening</div>
+                        <h3>Family First</h3>
+                        <p>Your mom calls. She needs help with something urgent. With Yara, you send money while you're still on the call with her. She receives it before you even say goodbye. No "let me go to the bank tomorrow." No "wait for the transfer to process." Just immediate help when family needs it most.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="uses">
+        <div class="container">
+            <h2 class="section-title">Real Life, Real Payments</h2>
+            <p class="section-subtitle">These aren't possibilities for tomorrow. These are things people are doing with Yara right now, today.</p>
+            
+            <div class="use-cases">
+                <div class="use-case-card">
+                    <div class="use-case-icon">📱</div>
+                    <h3>Airtime & Data</h3>
+                    <p>Data finished at 2 AM? Need airtime right now? Buy any amount, any network, instantly. No walking to find an open shop. No scratching cards with coins. Just open Yara and you're connected in seconds.</p>
+                </div>
+
+                <div class="use-case-card">
+                    <div class="use-case-icon">🍕</div>
+                    <h3>Top Up Chowdeck</h3>
+                    <p>Load your Chowdeck wallet the instant you feel hungry. Your balance updates immediately, not in 10 minutes or "within the hour." Order your food and know it's coming because payment happened at the speed of your appetite.</p>
+                </div>
+
+                <div class="use-case-card">
+                    <div class="use-case-icon">🏪</div>
+                    <h3>Pay Anywhere</h3>
+                    <p>More vendors accept Yara every single day. Your regular suya spot, the corner pharmacy, the woman who braids your hair. Fast, transparent payments that benefit everyone. No change needed, no IOUs, no complications.</p>
+                </div>
+
+                <div class="use-case-card">
+                    <div class="use-case-icon">💸</div>
+                    <h3>Send Money Instantly</h3>
+                    <p>Send money to friends splitting bills, family members who need help, or anyone with a Yara wallet. They receive it in actual seconds, not "1-2 business days." Real-time transfers for real-life situations.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <h2 class="section-title">Why Yara Changes Everything</h2>
+            <p class="section-subtitle">Time is the one thing you can't get back. Here's what you get with Yara versus traditional banking.</p>
+            
+            <div class="comparison">
+                <div class="comparison-grid">
+                    <div class="comparison-item">
+                        <div class="comparison-value">Instant</div>
+                        <div class="comparison-label">Yara Transfers</div>
+                        <div class="comparison-desc">Your money arrives the moment you hit send. Not minutes. Seconds.</div>
+                    </div>
+
+                    <div class="comparison-item">
+                        <div class="comparison-value">5-30min</div>
+                        <div class="comparison-label">Bank Transfers</div>
+                        <div class="comparison-desc">Even "instant" bank transfers make you wait. Sometimes they fail. Often you refresh 10 times wondering if it worked.</div>
+                    </div>
+
+                    <div class="comparison-item">
+                        <div class="comparison-value">100%</div>
+                        <div class="comparison-label">Crystal Clear</div>
+                        <div class="comparison-desc">Every fee shown upfront. No surprises. No "transaction charges" appearing days later. What you see is what you pay.</div>
+                    </div>
+
+                    <div class="comparison-item">
+                        <div class="comparison-value">24/7</div>
+                        <div class="comparison-label">Always On</div>
+                        <div class="comparison-desc">3 AM or 3 PM, Monday or Sunday. Yara never sleeps. No "banking hours" limiting when you can move your own money.</div>
+                    </div>
+                </div>
+
+                <div class="speed-bars">
+                    <div class="speed-bar">
+                        <div class="speed-label">⚡ Yara Payment Speed</div>
+                        <div class="bar-container">
+                            <div class="bar-fill" style="--bar-width: 98%;">Instant ✓</div>
+                        </div>
+                    </div>
+                    <div class="speed-bar">
+                        <div class="speed-label">🏦 Traditional Bank Transfer</div>
+                        <div class="bar-container">
+                            <div class="bar-fill" style="--bar-width: 45%;">5-30 minutes</div>
+                        </div>
+                    </div>
+                    <div class="speed-bar">
+                        <div class="speed-label">🐌 Walking to ATM</div>
+                        <div class="bar-container">
+                            <div class="bar-fill" style="--bar-width: 25%;">20-40 minutes</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Three simple steps stand between you and instant payments. That's it.</p>
+            
+            <div class="how-it-works">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Get Yara</h3>
+                    <p>Download the app and create your account. Simple signup, no mountain of paperwork. Takes less time than making tea.</p>
+                </div>
+                
+                <div class="step-connector"></div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Add Funds</h3>
+                    <p>Load money into your Yara wallet from your bank or card. Balance updates immediately, ready to use the second it arrives.</p>
+                </div>
+                
+                <div class="step-connector"></div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Pay & Send</h3>
+                    <p>Buy airtime, pay vendors, send to friends. Every transaction instant and transparent. This is how payments should feel.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <div class="final-cta">
+                <h2>Your money. Your time. Your way.</h2>
+                <p>Join thousands already experiencing the freedom of instant, transparent payments. Life moves fast—your money should too.</p>
+                <a href="https://www.yara.cash/" class="cta-button" target="_blank">Start Using Yara Today</a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Yara – Money at the speed of life</p>
+            <p>Creator X: @Thenimajan</p>
+        </div>
+    </footer>
+
+    <script>
+        const observerOptions = {
+            threshold: 0.15,
+            rootMargin: '0px 0px -80px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, index * 100);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.timeline-item, .use-case-card, .comparison-item, .step, .speed-bar').forEach(el => {
+            observer.observe(el);
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        const pills = document.querySelectorAll('.pill');
+        pills.forEach((pill, index) => {
+            setTimeout(() => {
+                pill.style.opacity = '0';
+                pill.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    pill.style.transition = 'all 0.5s';
+                    pill.style.opacity = '1';
+                    pill.style.transform = 'translateY(0)';
+                }, 100);
+            }, index * 100);
+        });
+        const canvas = document.getElementById('snowCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, snowflakes = [];
+
+        function init() {
+            resize();
+            createSnowflakes();
+            animate();
+        }
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+
+        window.addEventListener('resize', resize);
+
+        class Snowflake {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height * -1;
+                this.size = Math.random() * 3 + 1;
+                this.speed = Math.random() * 1 + 0.5;
+                this.velY = this.speed;
+                this.opacity = Math.random() * 0.5 + 0.3;
+                this.angle = Math.random() * Math.PI * 2;
+            }
+            update() {
+                this.angle += 0.01;
+                this.x += Math.cos(this.angle) * 0.5;
+                this.y += this.velY;
+                if (this.y > height) { this.reset(); this.y = -10; }
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
+
+        function createSnowflakes() {
+            for (let i = 0; i < 150; i++) { snowflakes.push(new Snowflake()); }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            snowflakes.forEach(flake => { flake.update(); flake.draw(); });
+            requestAnimationFrame(animate);
+        }
+
+        init();
+    </script>
+</body>
+</html>
